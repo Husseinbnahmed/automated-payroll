@@ -26,7 +26,7 @@ def holiday_tagger(df):
 
     """ tags if a day is a holiday or not """
     # List of holiday dates provided by Matt    
-    holidays = [ '2023-11-23', '2023-12-31', '2023-07-04', '2023-05-29', '2023-09-04']
+    holidays = [ '2023-11-23', '2023-12-31', '2023-07-04', '2023-05-29', '2023-09-04', '2023-12-25', '2024-01-01']
 
     #convert Date column to datetime format
     df['Date'] = pd.to_datetime(df['Date'])
