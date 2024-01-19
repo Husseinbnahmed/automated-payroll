@@ -25,26 +25,29 @@ def daily_hours_worked(df):
 def holiday_tagger(df):
 
     """ tags if a day is a holiday or not """
-    # List of holiday dates provided by Matt    
-    holidays = [ '2023-11-23', '2023-07-04', '2023-05-29', '2023-09-04', '2023-12-25', '2024-01-01']
+    # List of holiday dates provided by Amanda on 1/18/2024 in an SMS txt message  
+    holidays = [ '2024-1-1', '2024-05-27', '2024-07-04', '2024-09-02', '2024-12-25', '2024-11-28', '2025-1-1']
 
     #convert Date column to datetime format
     df['Date'] = pd.to_datetime(df['Date'])
-    # Adds important columns to be used in next steps
+    # create a holiday column, and assigns the value of 1 if the date of work in 'holidays' list, else assigns a 0
     df['Holiday'] = df['Date'].apply(lambda x: 1 if x.date().isoformat() in holidays else 0)
-
+    # returns the original dataframe, with a new holiday column
     return df
 
 def get_info_from_date(df):
        """ Extracts the week number from the date column and adds it to the dataframe"""
        
        df['Week'] = df['Date'].apply(lambda x: x.isocalendar()[1])
-       #Ensure that week is an integer with no decimals and then convert it to a string
+       #Ensure that week is an integer # with no decimals and then convert it to a string so that we can filter on it
        
        df['Week'] = df['Week'].apply(lambda x: str(x))
+        # get the year from the date column
        df['Year'] = df['Date'].apply(lambda x: x.year)
+        # get the month from the date column
        df['Month'] = df['Date'].apply(lambda x: x.month)
 
+        # return the original dataframe, with three new columns, week, year and month
        return df
 
 # Extract the Building Name and the Job title from the Job column and add them to the dataframe by splitting on =>
