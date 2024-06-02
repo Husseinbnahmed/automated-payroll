@@ -33,8 +33,8 @@ with st.form(key='my_form'):
             # paychex = pd.read_excel(paychex, sheet_name="Data")
 
             #process the files
-            df_two_week_schedule_1 = ct.daily_hours_worked(df_two_week_schedule)
-            df_two_week_schedule_2 = ct.holiday_tagger(df_two_week_schedule_1)
+            df_two_week_schedule_1 = ct.split_shifts(df_two_week_schedule)
+            df_two_week_schedule_2 = ct.holiday_tagger_updated(df_two_week_schedule_1)
             df_two_week_schedule_3 = ct.get_info_from_date(df_two_week_schedule_2)
             df_two_week_schedule_4= ct.get_building_and_job(df_two_week_schedule_3)
             df_two_week_schedule_5 = ct.create_time_sheet(df_two_week_schedule_4)
