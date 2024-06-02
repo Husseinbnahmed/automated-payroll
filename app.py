@@ -12,8 +12,6 @@ FYI: Some employees may have different names in each system, so keep an eye out 
 
 """)
 
-st.video()
-
 tst = pd.DataFrame()
 
 with st.form(key='my_form'):
