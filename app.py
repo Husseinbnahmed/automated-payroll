@@ -6,23 +6,23 @@ import time
 import openpyxl
 
 
-st.title("ConnectTeams ➡️ Paychex Automation")
-st.caption("""This app will process your Connect Teams Schedules and put them in a format suitable for Paychex to automatically process.
-Please note that not all employees will be processed since some of them are named differently between the two systems. \n
-` \n
+st.title("ConnectTeams to ADP")
+st.caption(""" ✨ This app bridges the gap between Connect Teams and ADP, transforming your schedules into a payroll-ready format.  
+FYI: Some employees may have different names in each system, so keep an eye out for those.
 
 """)
 
+st.video()
 
 tst = pd.DataFrame()
 
 with st.form(key='my_form'):
  
     #upload the schedule downloaded from connect teams for both weeks and save them as dataframes
-    df = st.file_uploader("📗 1- UPLOAD EXCEL FILE FOR **WEEK 1**", accept_multiple_files=False)
-    df_1 = st.file_uploader("📗 2- UPLOAD EXCEL FILE FOR **WEEK 2**", accept_multiple_files=False)
+    df = st.file_uploader(" 1- Upload excel file for **week 1** 📗", accept_multiple_files=False)
+    df_1 = st.file_uploader(" 2- Upload excel file for **week 2** 📗", accept_multiple_files=False)
     # paychex = st.file_uploader("🧑 UPLOAD EMPLOYEE DATA FROM **PAYCHEX**: In this step you will need to upload data from paychex that contains the employee name, their employee ID, please make sure that the sheet name is **Data**", accept_multiple_files=False)
-    submit_button = st.form_submit_button(label='➡️ CLICK SUBMIT TO PROCESS FILES')
+    submit_button = st.form_submit_button(label='➡️ Submit files')
     
     if submit_button:
         # try:
@@ -61,7 +61,7 @@ with st.form(key='my_form'):
             df_two_week_schedule_5 = df_two_week_schedule_5.groupby(["Job"]).agg({"Regular Hours": "sum", "Holiday Hours": "sum", "Overtime Hours": "sum"}).reset_index()
 
 
-            st.write("✅ Success! Your files have been processed. Below is the result 🎊")
+            st.write("✅ Success! Your files have been processed.")
 
             # tst = ct.get_paychex_template(paychex, df, df_1)
             # st.write(len(tst["Worker ID"].unique()), "Employees were processed")
@@ -82,6 +82,6 @@ with st.form(key='my_form'):
 
 
 try:
-    st.download_button(label=":arrow_down: Download the Paychex Template Import as a csv file", data=df_two_week_schedule_6.to_csv(), file_name='paychex_template_upload.csv', mime='text/csv')
+    st.download_button(label=":arrow_down: Download to CSV", data=df_two_week_schedule_6.to_csv(), file_name='adp_template_upload.csv', mime='text/csv')
 except:
     st.warning("No files processed")
