@@ -30,6 +30,11 @@ with st.form(key='my_form'):
             df_1 = pd.read_excel(df_1)
             #merge df and df_1
             df_two_week_schedule = pd.concat([df, df_1])
+            # Convert Date column to datetime
+            df_two_week_schedule['Date'] = pd.to_datetime(df_two_week_schedule['Date']
+            # Convert Start and End times to datetime.time
+            df_two_week_schedule['Start'] = pd.to_datetime(df_two_week_schedule['Start'], format='%I:%M%p').dt.time
+            df_two_week_schedule['End'] = pd.to_datetime(df_two_week_schedule['End'], format='%I:%M%p').dt.time
             # paychex = pd.read_excel(paychex, sheet_name="Data")
 
             #process the files
