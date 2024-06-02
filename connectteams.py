@@ -87,8 +87,6 @@ def holiday_tagger_updated(df):
     
     return df
 
------------------------------------------------------------------------------------------------------
-
 def daily_hours_worked(df):
     """Calculates the number of hours worked by each employee in the schedule
     parameters:
