@@ -3,6 +3,92 @@ import numpy as np
 import re
 from datetime import datetime, timedelta, time
 
+
+# new logic added on 6/2/2024 - objective: to account for overnight shifts that extend to a holiday day. 
+
+def split_shifts(df):
+    split_data = []
+    
+    for index, row in df.iterrows():
+        # Combine Date and Start time into a single datetime object
+        start = datetime.combine(row['Date'], row['Start'])
+        # Combine Date and End time into a single datetime object
+        end = datetime.combine(row['Date'], row['End'])
+        
+        # Check if the shift ends the next day (overnight shift)
+        if end <= start:
+            end += timedelta(days=1)  # Adjust end time to the next day
+            
+            # Split the shift into two parts: before and after midnight
+            first_shift_end = datetime.combine(row['Date'], time(23, 59, 59))
+            second_shift_start = datetime.combine(row['Date'] + timedelta(days=1), time(0, 0, 0))
+            
+            # Calculate hours for the first part of the shift (before midnight)
+            first_shift_hours = (first_shift_end - start).total_seconds() / 3600 + 1 / 3600
+            # Calculate hours for the second part of the shift (after midnight)
+            second_shift_hours = (end - second_shift_start).total_seconds() / 3600
+            
+            # Append the first part of the shift to the split_data list
+            split_data.append({
+                'Date': row['Date'],
+                'Start': row['Start'],
+                'End': '11:59:59 PM',
+                'Shift title': row['Shift title'],
+                'Job': row['Job'],
+                'Draft': row['Draft'],
+                'Users': row['Users'],
+                'Location': row['Location'],
+                'Hours': round(first_shift_hours, 2),
+                'Holiday': 0  # Initial tagging
+            })
+            
+            # Append the second part of the shift to the split_data list
+            split_data.append({
+                'Date': row['Date'] + timedelta(days=1),
+                'Start': '12:00:00 AM',
+                'End': row['End'],
+                'Shift title': row['Shift title'],
+                'Job': row['Job'],
+                'Draft': row['Draft'],
+                'Users': row['Users'],
+                'Location': row['Location'],
+                'Hours': round(second_shift_hours, 2),
+                'Holiday': 0  # Initial tagging
+            })
+        else:
+            # Calculate hours if the shift does not span midnight
+            hours = (end - start).total_seconds() / 3600
+            split_data.append({
+                'Date': row['Date'],
+                'Start': row['Start'],
+                'End': row['End'],
+                'Shift title': row['Shift title'],
+                'Job': row['Job'],
+                'Draft': row['Draft'],
+                'Users': row['Users'],
+                'Location': row['Location'],
+                'Hours': round(hours, 2),
+                'Holiday': 0  # Initial tagging
+            })
+    
+    # Return a DataFrame with the split shifts
+    return pd.DataFrame(split_data)
+
+def holiday_tagger_updated(df):
+    # List of holiday dates
+    holidays = ['2024-01-01', '2024-05-27', '2024-07-04', '2024-09-02', '2024-12-25', '2024-11-28', '2025-01-01']
+    holidays = [datetime.strptime(date, '%Y-%m-%d').date() for date in holidays]
+    
+    # Convert Date column to datetime.date
+    df['Date'] = pd.to_datetime(df['Date']).dt.date
+    
+    # Tag holidays based on the Date column
+    df['Holiday'] = df['Date'].apply(lambda x: 1 if x in holidays else 0)
+    
+    return df
+
+-----------------------------------------------------------------------------------------------------
+
 def daily_hours_worked(df):
     """Calculates the number of hours worked by each employee in the schedule
     parameters:
