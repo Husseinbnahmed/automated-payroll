@@ -256,7 +256,7 @@ def adjust_hours(df):
 
 # + row['Overtime Hours']
 
-def adjust_hours(df):
+def adjust_hours_updated(df):
     """ Adjusts regular and overtime hours for each employee at a weekly level. """
     df.sort_values(['Users', 'Week'], inplace=True)
 
