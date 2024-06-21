@@ -231,7 +231,7 @@ def adjust_hours(df):
 
         if new_total > 40:
             overtime = new_total - 40
-            regular = 40 - total_regular_hours[key]
+            regular = 40 
         else:
             regular = row['Regular Hours']
             overtime = row['Overtime Hours']
