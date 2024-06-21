@@ -231,7 +231,7 @@ def adjust_hours(df):
 
         if new_total > 40:
             overtime = new_total - 40
-            regular = 40 
+            regular = 40 - total_regular_hours[key]
         else:
             regular = row['Regular Hours']
             overtime = row['Overtime Hours']
@@ -255,6 +255,46 @@ def adjust_hours(df):
     return adjusted_df
 
 # + row['Overtime Hours']
+
+def adjust_hours_updated(df):
+    """ Adjusts regular and overtime hours for each employee at a weekly level. """
+    df.sort_values(['Users', 'Week'], inplace=True)
+
+    new_rows = []
+    total_regular_hours = {}
+
+    for i, row in df.iterrows():
+        key = (row['Users'], row['Week'])
+
+        if key not in total_regular_hours:
+            total_regular_hours[key] = 0.0
+
+        current_regular_hours = total_regular_hours[key]
+        new_total_regular_hours = current_regular_hours + row['Regular Hours']
+
+        if new_total_regular_hours > 40:
+            overtime = new_total_regular_hours - 40
+            if current_regular_hours < 40:
+                regular = 40 - current_regular_hours
+                overtime = row['Regular Hours'] - regular + row['Overtime Hours']
+            else:
+                regular = 0
+                overtime = row['Regular Hours'] + row['Overtime Hours']
+        else:
+            regular = row['Regular Hours']
+            overtime = row['Overtime Hours']
+
+        total_regular_hours[key] += regular
+
+        new_row = row.copy()
+        new_row['Regular Hours'] = regular
+        new_row['Overtime Hours'] = round(overtime, 2)
+
+        new_rows.append(new_row)
+
+    adjusted_df = pd.DataFrame(new_rows)
+    return adjusted_df
+
 
 def get_paychex_template(paychex, file_1, file_2):
 
