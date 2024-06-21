@@ -41,7 +41,7 @@ with st.form(key='my_form'):
             df_two_week_schedule_3 = ct.get_info_from_date(df_two_week_schedule_2)
             df_two_week_schedule_4= ct.get_building_and_job(df_two_week_schedule_3)
             df_two_week_schedule_5 = ct.create_time_sheet(df_two_week_schedule_4)
-            df_two_week_schedule_6= ct.adjust_hours(df_two_week_schedule_5)
+            df_two_week_schedule_6= ct.adjust_hours_updated(df_two_week_schedule_5)
 
             #group by users and agg sum the regular, holiday and overtime hours
             df_two_week_schedule_6 = df_two_week_schedule_6.groupby(["Users"]).agg({"Regular Hours": "sum", "Holiday Hours": "sum", "Overtime Hours": "sum"}).reset_index()
