@@ -258,7 +258,7 @@ def adjust_hours(df):
 
 def adjust_hours_updated(df):
     """ Adjusts regular and overtime hours for each employee across two weeks, capping regular hours at 80. """
-    df.sort_values(['Users', 'Week'], inplace=True)
+    df.sort_values(['Users'], inplace=True)
 
     new_rows = []
     total_regular_hours = {}
