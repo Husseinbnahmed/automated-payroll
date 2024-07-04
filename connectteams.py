@@ -35,6 +35,7 @@ def split_shifts(df):
                 'End': '11:59:59 PM',
                 'Shift title': row['Shift title'],
                 'Job': row['Job'],
+                'Sub-job': row['Sub-job'],
                 'Draft': row['Draft'],
                 'Users': row['Users'],
                 'Location': row['Location'],
@@ -49,6 +50,7 @@ def split_shifts(df):
                 'End': row['End'],
                 'Shift title': row['Shift title'],
                 'Job': row['Job'],
+                'Sub-job': row['Sub-job'],
                 'Draft': row['Draft'],
                 'Users': row['Users'],
                 'Location': row['Location'],
@@ -64,6 +66,7 @@ def split_shifts(df):
                 'End': row['End'],
                 'Shift title': row['Shift title'],
                 'Job': row['Job'],
+                'Sub-job': row['Sub-job'], # Added 'Sub-job' column
                 'Draft': row['Draft'],
                 'Users': row['Users'],
                 'Location': row['Location'],
@@ -146,14 +149,10 @@ def create_time_sheet(df):
     Takes a dataframe and categorizes the total hours by each employee into three categories (holiday, regular and overtime hours) and shows the result by month, year, week, building and job to be made
 
     """
-
-    # Create a new DataFrame with the desired columns
+    
+ # Create a new DataFrame with the desired columns
     result = pd.DataFrame(columns=['Users', 'Month', 'Year', 'Holiday Hours', 'Regular Hours', 'Overtime Hours'])
-    
-    # Group the data by employee and week of year
-    grouped = df.groupby(['Users', 'Week', 'Year', 'Month', 'Building', 'Job'])
-    
-    # Iterate over each group and calculate the hours
+    grouped = df.groupby(['Users', 'Week', 'Year', 'Month'])
     for name, group in grouped:
         holiday_hours = group[group['Holiday'] == 1]['Hours'].sum()
         regular_hours = group[group['Holiday'] == 0]['Hours'].sum()
@@ -168,8 +167,6 @@ def create_time_sheet(df):
             
        # Create a single-row DataFrame for this group and concatenate it with the result DataFrame
         row = pd.DataFrame({'Users': [name[0]],
-                            'Job': [name[4]],
-                            'Building': [name[5]],
                             'Week': [name[1]],
                             'Month': [name[3]], 
                             'Year': [name[2]],
@@ -186,7 +183,7 @@ def create_time_sheet(df):
         result['Month'] = result['Month'].astype(str)
         #convert year to date format
         result['Year'] = result['Year'].astype(str)
-
+        
     return result
 
 def get_final_dataframe(tst_schedule, payrates):
