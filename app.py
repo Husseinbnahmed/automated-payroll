@@ -28,6 +28,11 @@ def format_user_names(df: pd.DataFrame) -> pd.DataFrame:
 
 st.title("ConnectTeams to ADP Converter")
 st.caption("✨ This app bridges the gap between Connect Teams and ADP, transforming your schedules into a payroll-ready format.")
+st.warning("""Note that some employees will exceed over 80 hours of regular hours, that is because they worked an overnight
+           shift on the last day of the payroll period, and some of the hours spilled over to the following day, 
+           which is a day outside of the payroll period. For example, if the payroll period ends on 6-30-2024, and an employee
+           worked on 6-30-2024 but from 11 pm to 7 am the following day. Those 7 hours will be shown as regular hours. You
+           can confirm this by looking at the schedule on Connecteams.""", icon="⚠️")
 
 with st.form(key='upload_form'):
     files = [
