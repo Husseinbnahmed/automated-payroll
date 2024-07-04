@@ -1,85 +1,62 @@
 import pandas as pd
-import numpy as np
 import streamlit as st
+from typing import List
 import connectteams as ct
-import time
-import openpyxl
 
+def load_and_process_data(files: List[st.UploadedFile]) -> pd.DataFrame:
+    """Load and process uploaded Excel files."""
+    dfs = [pd.read_excel(file) for file in files]
+    df_combined = pd.concat(dfs, ignore_index=True)
+    df_combined['Date'] = pd.to_datetime(df_combined['Date'])
+    df_combined['Start'] = pd.to_datetime(df_combined['Start'], format='%I:%M%p').dt.time
+    df_combined['End'] = pd.to_datetime(df_combined['End'], format='%I:%M%p').dt.time
+    return df_combined
 
-st.title("ConnectTeams to ADP")
-st.caption(""" ✨ This app bridges the gap between Connect Teams and ADP, transforming your schedules into a payroll-ready format.  
-FYI: Some employees may have different names in each system, so keep an eye out for those.
+def process_timesheet(df: pd.DataFrame) -> pd.DataFrame:
+    """Process the timesheet data."""
+    df = ct.split_shifts(df)
+    df = ct.holiday_tagger_updated(df)
+    df = ct.get_info_from_date(df)
+    return ct.create_time_sheet(df)
 
-""")
+def format_user_names(df: pd.DataFrame) -> pd.DataFrame:
+    """Format user names from 'First Last' to 'Last, First'."""
+    df['Users'] = df['Users'].str.split().apply(lambda x: f"{x[1]}, {x[0]}")
+    return df.sort_values('Users').reset_index(drop=True)
 
-tst = pd.DataFrame()
+st.title("ConnectTeams to ADP Converter")
+st.caption("✨ This app bridges the gap between Connect Teams and ADP, transforming your schedules into a payroll-ready format.")
 
-with st.form(key='my_form'):
- 
-    #upload the schedule downloaded from connect teams for both weeks and save them as dataframes
-    df = st.file_uploader(" 1- Upload excel file for **week 1** 📗", accept_multiple_files=False)
-    df_1 = st.file_uploader(" 2- Upload excel file for **week 2** 📗", accept_multiple_files=False)
-    # paychex = st.file_uploader("🧑 UPLOAD EMPLOYEE DATA FROM **PAYCHEX**: In this step you will need to upload data from paychex that contains the employee name, their employee ID, please make sure that the sheet name is **Data**", accept_multiple_files=False)
-    submit_button = st.form_submit_button(label='➡️ Submit files')
-    
-    if submit_button:
-        # try:
-            df = pd.read_excel(df)
-            df_1 = pd.read_excel(df_1)
-            #merge df and df_1
-            df_two_week_schedule = pd.concat([df, df_1])
-            # Convert Date column to datetime
-            df_two_week_schedule['Date'] = pd.to_datetime(df_two_week_schedule['Date'])
-            # Convert Start and End times to datetime.time
-            df_two_week_schedule['Start'] = pd.to_datetime(df_two_week_schedule['Start'], format='%I:%M%p').dt.time
-            df_two_week_schedule['End'] = pd.to_datetime(df_two_week_schedule['End'], format='%I:%M%p').dt.time
-            # paychex = pd.read_excel(paychex, sheet_name="Data")
+with st.form(key='upload_form'):
+    files = [
+        st.file_uploader("1- Upload excel file for **week 1** 📗", accept_multiple_files=False),
+        st.file_uploader("2- Upload excel file for **week 2** 📗", accept_multiple_files=False)
+    ]
+    submit_button = st.form_submit_button(label='➡️ Process Files')
 
-            #process the files
-            df_two_week_schedule_1 = ct.split_shifts(df_two_week_schedule)
-            df_two_week_schedule_2 = ct.holiday_tagger_updated(df_two_week_schedule_1)
-            df_two_week_schedule_3 = ct.get_info_from_date(df_two_week_schedule_2)
-            df_two_week_schedule_4= ct.get_building_and_job(df_two_week_schedule_3)
-            df_two_week_schedule_5 = ct.create_time_sheet(df_two_week_schedule_4)
-            df_two_week_schedule_6= ct.adjust_hours_updated(df_two_week_schedule_5)
+if submit_button and all(files):
+    try:
+        df_combined = load_and_process_data(files)
+        time_sheet = process_timesheet(df_combined)
+        time_sheet_user = time_sheet.groupby("Users").agg({
+            "Regular Hours": "sum",
+            "Holiday Hours": "sum",
+            "Overtime Hours": "sum"
+        }).reset_index()
+        time_sheet_user = format_user_names(time_sheet_user)
 
-            #group by users and agg sum the regular, holiday and overtime hours
-            df_two_week_schedule_6 = df_two_week_schedule_6.groupby(["Users"]).agg({"Regular Hours": "sum", "Holiday Hours": "sum", "Overtime Hours": "sum"}).reset_index()
-            # reorganize the user's column 
-            first_name = df_two_week_schedule_6['Users'].str.split(" ").str[0]
-            last_name = df_two_week_schedule_6['Users'].str.split(" ").str[1]
-            #update the user's column 
-  
-            df_two_week_schedule_6["Users"] = last_name + ", " + first_name
-            #sort the users column alphabetically
-            df_two_week_schedule_6 = df_two_week_schedule_6.sort_values(by=['Users'])
-            #reset the index
-            df_two_week_schedule_6 = df_two_week_schedule_6.reset_index(drop=True)
-            #group by Job and sum regular, holiday and overtime hours
-            df_two_week_schedule_5 = df_two_week_schedule_5.groupby(["Job"]).agg({"Regular Hours": "sum", "Holiday Hours": "sum", "Overtime Hours": "sum"}).reset_index()
+        st.success("✅ Files processed successfully!")
+        st.dataframe(time_sheet_user, width=1000, height=500)
+        st.balloons()
 
-
-            st.write("✅ Success! Your files have been processed.")
-
-            # tst = ct.get_paychex_template(paychex, df, df_1)
-            # st.write(len(tst["Worker ID"].unique()), "Employees were processed")
-            st.dataframe(df_two_week_schedule_6, width=1000, height=500)
-
-            st.dataframe(df_two_week_schedule_5, width=1000, height=500)
-            
-           
-            st.balloons()
-            #count the unique worker id to see how many employees were processed
-
-
-        # except Exception as e:
-        #     print(e)
-        #     st.warning("No files uploaded, or something went wrong")
-    else:
-        st.caption(" You must click on the submit button to process the files")
-
-
-try:
-    st.download_button(label=":arrow_down: Download to CSV", data=df_two_week_schedule_6.to_csv(), file_name='adp_template_upload.csv', mime='text/csv')
-except:
-    st.warning("No files processed")
+        csv = time_sheet_user.to_csv(index=False)
+        st.download_button(
+            label="⬇️ Download CSV",
+            data=csv,
+            file_name='adp_template_upload.csv',
+            mime='text/csv'
+        )
+    except Exception as e:
+        st.error(f"An error occurred: {str(e)}")
+else:
+    st.info("Please upload both files and click 'Process Files' to begin.")
