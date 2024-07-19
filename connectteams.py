@@ -152,7 +152,7 @@ def create_time_sheet(df):
     
  # Create a new DataFrame with the desired columns
     result = pd.DataFrame(columns=['Users', 'Month', 'Year', 'Holiday Hours', 'Regular Hours', 'Overtime Hours'])
-    grouped = df.groupby(['Users', 'Week', 'Year', 'Month'])
+    grouped = df.groupby(['Users', 'Week'])
     for name, group in grouped:
         holiday_hours = group[group['Holiday'] == 1]['Hours'].sum()
         regular_hours = group[group['Holiday'] == 0]['Hours'].sum()
@@ -168,8 +168,8 @@ def create_time_sheet(df):
        # Create a single-row DataFrame for this group and concatenate it with the result DataFrame
         row = pd.DataFrame({'Users': [name[0]],
                             'Week': [name[1]],
-                            'Month': [name[3]], 
-                            'Year': [name[2]],
+                            # 'Month': [name[3]], 
+                            # 'Year': [name[2]],
                             'Holiday Hours': [holiday_hours], 
                             'Regular Hours': [regular_hours], 
                             'Overtime Hours': [overtime_hours]})
@@ -180,9 +180,9 @@ def create_time_sheet(df):
         #convert week to str
         result['Week'] = result['Week'].astype(str)
         #convert month to str
-        result['Month'] = result['Month'].astype(str)
-        #convert year to date format
-        result['Year'] = result['Year'].astype(str)
+        # result['Month'] = result['Month'].astype(str)
+        # #convert year to date format
+        # result['Year'] = result['Year'].astype(str)
         
     return result
 

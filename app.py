@@ -12,11 +12,13 @@ def load_and_process_data(files: List[st.runtime.uploaded_file_manager.UploadedF
     df_combined['Date'] = pd.to_datetime(df_combined['Date'])
     df_combined['Start'] = pd.to_datetime(df_combined['Start'], format='%I:%M%p').dt.time
     df_combined['End'] = pd.to_datetime(df_combined['End'], format='%I:%M%p').dt.time
+    df_combined = df_combined.drop_duplicates()
     return df_combined
 
-def process_timesheet(df: pd.DataFrame) -> pd.DataFrame:
+def process_timesheet(df: pd.DataFrame, start_date, end_date) -> pd.DataFrame:
     """Process the timesheet data."""
     df = ct.split_shifts(df)
+    df = df[(df['Date'] >= start_date) & (df['Date'] <= end_date)]
     df = ct.holiday_tagger_updated(df)
     df = ct.get_info_from_date(df)
     return ct.create_time_sheet(df)
@@ -27,18 +29,16 @@ def format_user_names(df: pd.DataFrame) -> pd.DataFrame:
     return df.sort_values('Users').reset_index(drop=True)
 
 st.title("ConnectTeams to ADP Converter")
-st.caption("✨ This app bridges the gap between Connect Teams and ADP, transforming your schedules into a payroll-ready format.")
-st.warning("""Note that some employees will exceed over 80 hours of regular hours, that is because they worked an overnight
-           shift on the last day of the payroll period, and some of the hours spilled over to the following day, 
-           which is a day outside of the payroll period. For example, if the payroll period ends on 6-30-2024, and an employee
-           worked on 6-30-2024 but from 11 pm to 7 am the following day. Those 7 hours will be shown as regular hours. You
-           can confirm this by looking at the schedule on Connecteams.""", icon="⚠️")
+st.caption("✨ Connecteams to ADP in minutes")
+
 
 with st.form(key='upload_form'):
     files = [
-        st.file_uploader("1- Upload excel file for **week 1** 📗", accept_multiple_files=False),
-        st.file_uploader("2- Upload excel file for **week 2** 📗", accept_multiple_files=False)
+        st.file_uploader("1- **Upload Connecteams export for LAST month**", accept_multiple_files=False),
+        st.file_uploader("2- **Upload Connecteams export for THIS month**", accept_multiple_files=False)
     ]
+    start_date = pd.to_datetime(st.date_input("3- Payroll start date", value=pd.Timestamp.today().date()))
+    end_date = pd.to_datetime(st.date_input("4- Payroll end date", value=pd.Timestamp.today().date()))
     submit_button = st.form_submit_button(label='➡️ Process Files')
 
 if submit_button:
@@ -47,7 +47,7 @@ if submit_button:
     else:
         try:
             df_combined = load_and_process_data(files)
-            time_sheet = process_timesheet(df_combined)
+            time_sheet = process_timesheet(df_combined, start_date, end_date)
             time_sheet_user = time_sheet.groupby("Users").agg({
                 "Regular Hours": "sum",
                 "Holiday Hours": "sum",
