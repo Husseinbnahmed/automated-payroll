@@ -79,7 +79,7 @@ def split_shifts(df):
 
 def holiday_tagger_updated(df):
     # List of holiday dates
-    holidays = ['2024-01-01', '2024-05-27', '2024-07-04', '2024-09-02', '2024-12-25', '2024-11-28', '2025-01-01']
+    holidays = ['2025-01-01', '2025-05-27', '2025-07-04', '2025-09-02', '2025-12-25', '2025-11-28', '2026-01-01']
     holidays = [datetime.strptime(date, '%Y-%m-%d').date() for date in holidays]
     
     # Convert Date column to datetime.date
